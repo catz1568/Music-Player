@@ -1,7 +1,11 @@
 #include <raylib.h>
+#include <chrono>
+#include <thread>
 #include <iostream>
 
-#define MAX_MUSIC 25
+#define MAX_SONGS 25
+
+using namespace std::chrono_literals;
 
 
 struct musicobject {
@@ -10,7 +14,6 @@ struct musicobject {
     Vector2 position;
     Color color;
 };
-
 int main(void) 
 {
     //SetConfigFlags(FLAG_FULLSCREEN_MODE);
@@ -18,7 +21,7 @@ int main(void)
     const int ScreenHEIGHT = 720;
     bool pause = false;
     int currentIndex = 0;
-    Music music[MAX_MUSIC];
+    Music music[MAX_SONGS] = { 0 };
 
     InitWindow(ScreenWIDTH, ScreenHEIGHT, "Music Player");
     InitAudioDevice();
@@ -52,26 +55,34 @@ int main(void)
     while (!WindowShouldClose()) {
         UpdateMusicStream(music[currentIndex]);
         mousePos = GetMousePosition();
-        if (GetMusicTimePlayed(music[currentIndex]) >= GetMusicTimeLength(music[currentIndex])) {
+        if (GetMusicTimeLength(music[currentIndex]) == GetMusicTimePlayed(music[currentIndex]) || IsKeyDown(KEY_RIGHT)) {
             StopMusicStream(music[currentIndex]);
 
-            if (currentIndex > files.count) { currentIndex = 0; }
-            currentIndex++;
+            if (currentIndex >= files.count-1) { 
+                currentIndex = 0; 
+            } else {
+                ++currentIndex;
+            }
+            std::cout << currentIndex << "\n";
             PlayMusicStream(music[currentIndex]);
+            std::this_thread::sleep_for(0.5s);
         }
         if (CheckCollisionPointRec(mousePos, Play.bounds)) {
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 pause = !pause; 
                 if (pause) PauseMusicStream(music[currentIndex]);
                 else ResumeMusicStream(music[currentIndex]);
+                std::this_thread::sleep_for(0.2s);
             }
         }
         BeginDrawing();
         ClearBackground(BLACK);
         
         DrawTextureRec(play_texture, Play.source, (Vector2){Play.bounds.x, Play.bounds.y}, WHITE);
+        DrawTextEx(GetFontDefault(), TextFormat("%.2f", GetMusicTimePlayed(music[currentIndex])), (Vector2){ ScreenWIDTH / 2 - 400, ScreenHEIGHT / 2 - 300}, 15, 25, WHITE);
+        DrawTextEx(GetFontDefault(), TextFormat("%.2f", GetMusicTimeLength(music[currentIndex])), (Vector2){ ScreenWIDTH / 2 + 500, ScreenHEIGHT / 2 - 300}, 15, 25, WHITE);
 
-        DrawTextEx(GetFontDefault(), TextFormat("%i %i", GetMouseX(), GetMouseY()), (Vector2){100, 100}, 20, 10, WHITE);
+        //DrawTextEx(GetFontDefault(), TextFormat("%i %i", GetMouseX(), GetMouseY()), (Vector2){100, 100}, 20, 10, WHITE);
         EndDrawing();
     }
     CloseWindow();
