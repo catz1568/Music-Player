@@ -8,13 +8,6 @@
 
 using namespace std::chrono_literals;
 
-
-struct musicobject {
-    Rectangle source;
-    Rectangle bounds;
-    Color color;
-};
-
 int main(void) 
 {
     const int ScreenWIDTH = 1280;
